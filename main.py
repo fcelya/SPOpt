@@ -1,10 +1,13 @@
 from src.returns import LogNormalReturns
 from src.cashflows import NormalCashFlows
-from src.optimization.om_discrete import create_model
+from src.optimization.om_discrete_cvar import create_model
+from src.results import ResultsAnalyzer
 from development.synth_data import generate_synth_prices, generate_synth_income, generate_synth_expenses
 import src.constants as cte
 import numpy as np
 from pyomo.environ import SolverFactory
+from pyomo.contrib import appsi
+import time
 
 price_data = generate_synth_prices()
 returns_model = LogNormalReturns()
@@ -44,22 +47,38 @@ data = {
         'pInitialCashAllocations': {None: cte.STARTING_CASH},
         'pIncome': {(s_i,t_i): income_syms[s_i, t_i] for s_i in sScenarios for t_i in sNonFinalTimes},
         'pExpense': {(s_i,t_i): expenses_syms[s_i, t_i] for s_i in sScenarios for t_i in sNonFinalTimes},
-        'pNScenarios': {None: cte.N_SCENARIOS},
         'pTradeFee': {None: cte.TRADING_FEE},
+        'pCVaRAlpha': {None: cte.CVAR_ALPHA},
+        'pCVaRGamma': {None: cte.CVAR_GAMMA},
     }
 }
 
 optimization_model = create_model()
 instance = optimization_model.create_instance(data)
-opt = SolverFactory('glpk')
-result_obj = opt.solve(instance, tee=True)
+solver = SolverFactory('cbc')
+# solver = SolverFactory('clp')
+# solver = SolverFactory('glpk')
+# solver = appsi.solvers.Cbc()
+# solver = appsi.solvers.Cplex()
+# solver = appsi.solvers.Highs()
+# solver = appsi.solvers.Ipopt()
+
+print(f'Starting to solve...')
+t1 = time.time()
+result_obj = solver.solve(instance, tee=True)
+t2 = time.time()
+print(f"Solved in {t2-t1:.2f} s")
+
+analyzer = ResultsAnalyzer(instance)
+df = analyzer.get_df('vNonCashAllocations')
+print(df.head())
 
 # print('vTotalWealth')
 # for key in instance.vTotalWealth:
 #     print(key, instance.vTotalWealth[key].value)
     
-print('vNonCashAllocations')
-instance.vNonCashAllocations.pprint()
+# print('vNonCashAllocations')
+# instance.vNonCashAllocations.pprint()
 # instance.vNonCashAllocations.pprint()
 # instance.pPrices.pprint()
 # print('pIncome')

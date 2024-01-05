@@ -1,0 +1,52 @@
+import pandas as pd
+
+class ResultsAnalyzer():
+    def __init__(self,instance):
+        self.instance = instance
+        self.all_vars = None
+        self.vars = None
+        self.params = None
+        self.sets = None
+        self.df_dict = {}
+
+        self._load_vars()
+
+    def _load_vars(self):
+        self.all_vars = list(self.instance._decl.keys())
+        self.vars = [i for i in self.all_vars if i[0]=='v']
+        self.params = [i for i in self.all_vars if i[0]=='p']
+        self.sets = [i for i in self.all_vars if i[0]=='s']
+    
+    def get_vars(self):
+        return self.vars
+    
+    def get_params(self):
+        return self.params
+    
+    def get_sets(self):
+        return self.sets
+    
+    def get_df(self, name, col_names = None):
+        if name not in self.all_vars:
+            raise ValueError(f"{name} is not a valid variable or parameter in the model. Get all valid variables or parameters through the .get_vars or .get_params methods.")
+        if name in self.df_dict.keys():
+            return self.df_dict[name]
+        
+        obj = getattr(self.instance, name)   
+        keys = getattr(self.instance, name+'_index')
+
+        if col_names is not None:
+            if len(col_names) != len(keys[1]):
+                raise ValueError(f"{len(col_names)} column names have been provided but there are {len(keys[1])} values in the index. For reference, the first index is {keys[1]}")
+        else:
+            col_names = [f'i_{i}' for i in range(len(keys[1]))]
+        
+        df_values = {}
+        for i in keys:
+            for c,j in enumerate(col_names):
+                df_values[c] = i[j]
+            df_values['value'] = obj[i].value
+
+        df = pd.DataFrame(df_values)
+        self.df_dict[name] = df
+        return df
