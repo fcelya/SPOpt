@@ -20,7 +20,7 @@ class NormalCashFlows():
             raise ValueError("Model not fitted. Please use fit() method first.")
         
         # Generate new prices for each path
-        cashflows = np.clip(self.dist.rvs(size=(n_paths, horizon),random_state=self.seed), 0, None)
+        cashflows = np.clip(self.dist.rvs(size=(n_paths, horizon+1),random_state=self.seed), 0, None)
         
         return cashflows
 

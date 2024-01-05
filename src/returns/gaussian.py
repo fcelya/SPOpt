@@ -40,7 +40,7 @@ class LogNormalReturns():
 
         for t in range(1, horizon+1):
             log_returns_sampled = self.dist.rvs(size=n_paths, random_state=self.seed)
-            prices[:, :, t] = prices[:, :, t] * np.exp(log_returns_sampled)
+            prices[:, :, t] = prices[:, :, t-1] * np.exp(log_returns_sampled)
 
 
         return np.clip(prices, 0, None)

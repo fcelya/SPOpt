@@ -11,10 +11,10 @@ def generate_synth_prices():
     num_days = 252
 
     # Mean log returns for the two assets
-    mean_returns = [0.001, 0.0015]
+    mean_returns = [0.01, 0.015]
 
     # Covariance matrix
-    cov_matrix = [[0.0001, 0.0001], [0.0001, 0.0004]]
+    cov_matrix = [[0.001, 0.001], [0.001, 0.004]]
 
     # Generate random log returns based on the normal distribution
     log_returns = np.random.multivariate_normal(mean_returns, cov_matrix, num_days)
@@ -33,7 +33,7 @@ def generate_synth_prices():
     return df
 
 def generate_synth_income():
-    return np.random.normal(2000,100,size=200)
+    return np.random.normal(20,2,size=200)
 
 def generate_synth_expenses():
-    return np.random.normal(1600,400,size=200)
+    return np.random.normal(16,4,size=200)
