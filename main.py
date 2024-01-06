@@ -1,7 +1,8 @@
 from src.returns import LogNormalReturns
-from src.cashflows import NormalCashFlows
+from src.cashflows import NormalCashFlows, ZeroCashFlows
 from src.optimization.om_discrete_cvar import create_model
 from src.results import ResultsAnalyzer
+
 from development.synth_data import generate_synth_prices, generate_synth_income, generate_synth_expenses
 import src.constants as cte
 import numpy as np
@@ -9,16 +10,18 @@ from pyomo.environ import SolverFactory
 from pyomo.contrib import appsi
 import time
 
+import pandas as pd
+
 price_data = generate_synth_prices()
 returns_model = LogNormalReturns()
 returns_model.fit(price_data)
 
 income_data = generate_synth_income()
-income_model = NormalCashFlows()
+income_model = ZeroCashFlows()
 income_model.fit(income_data)
 
 expenses_data = generate_synth_expenses()
-expenses_model = NormalCashFlows()
+expenses_model = ZeroCashFlows()
 expenses_model.fit(expenses_data)
 
 non_cash_assets = list(price_data.columns)
@@ -70,23 +73,12 @@ t2 = time.time()
 print(f"Solved in {t2-t1:.2f} s")
 
 analyzer = ResultsAnalyzer(instance)
-df = analyzer.get_df('vNonCashAllocations')
-print(df.head())
-
-# print('vTotalWealth')
-# for key in instance.vTotalWealth:
-#     print(key, instance.vTotalWealth[key].value)
-    
-# print('vNonCashAllocations')
-# instance.vNonCashAllocations.pprint()
-# instance.vNonCashAllocations.pprint()
-# instance.pPrices.pprint()
-# print('pIncome')
-# for key in instance.pIncome:
-#     print(key, instance.pIncome[key].value, instance.pExpense[key].value)
-
-# print('pPrices')
-# for key in instance.pPrices:
-#     print(key, instance.pPrices[key].value)
+analyzer.plot_ts(name='vTotalWealth', time_col='time',col_names=['scenario', 'time'], colors='scenario')
+analyzer.plot_dist(name='vTotalWealth', col_names=['scenario', 'time'], filter={'time':5})
+analyzer.plot_ci(name='vTotalWealth', time_col='time', scenario_col='scenario',filter=None, col_names=['scenario', 'time'], confidence=.95)
+analyzer.plot_dist(name='pPrices', col_names=['scenario','asset','time'], filter={'time':5},colors='asset')
+df = analyzer.get_df(name='vNonCashAllocations',col_names=['scenario', 'time'])
+analyzer.plot_ci(name='vCashAllocations', time_col='time', scenario_col='scenario',filter=None, col_names=['scenario', 'time'], confidence=.95)
+print(df)
 
 pass

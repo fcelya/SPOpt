@@ -19,7 +19,7 @@ class NormalCashFlows():
         if self.mean is None or self.var is None:
             raise ValueError("Model not fitted. Please use fit() method first.")
         
-        # Generate new prices for each path
+        # Generate new cashflows for each path
         cashflows = np.clip(self.dist.rvs(size=(n_paths, horizon+1),random_state=self.seed), 0, None)
         
         return cashflows

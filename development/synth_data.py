@@ -1,7 +1,6 @@
 import numpy as np
 import pandas as pd
 import datetime
-import matplotlib.pyplot as plt
 
 def generate_synth_prices():
     # Set a seed for reproducibility
@@ -11,10 +10,10 @@ def generate_synth_prices():
     num_days = 252
 
     # Mean log returns for the two assets
-    mean_returns = [0.01, 0.015]
+    mean_returns = [0.1, 0.15]
 
     # Covariance matrix
-    cov_matrix = [[0.001, 0.001], [0.001, 0.004]]
+    cov_matrix = [[0.01, 0.01], [0.01, 0.04]]
 
     # Generate random log returns based on the normal distribution
     log_returns = np.random.multivariate_normal(mean_returns, cov_matrix, num_days)
