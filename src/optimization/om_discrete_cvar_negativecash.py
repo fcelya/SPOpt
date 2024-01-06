@@ -1,6 +1,9 @@
 import pyomo.environ as pe
 
 def create_model():
+    """
+    DOES NOT GIVE SENSIBLE ANSWERS, BORROWS AGGRESSIVELY TO INCREASE EXPECTATION THROUGH RETURNS OF OUTLIERS ON MARGIN
+    """
     
     model = pe.AbstractModel()
     
@@ -22,9 +25,13 @@ def create_model():
     model.pExpense = pe.Param(model.sScenarios, model.sNonFinalTime, mutable=True, within=pe.NonNegativeReals)
     model.pTradeFee = pe.Param(mutable=True, within=pe.NonNegativeReals, default=0)
     model.pCVaRAlpha = pe.Param(mutable=True, within=pe.NonNegativeReals, default=0.05)
-    model.pCVaRGamma = pe.Param(mutable=True, within=pe.NonNegativeReals, default=1.0)
+    model.pCVaRGamma = pe.Param(mutable=True, within=pe.NonNegativeReals, default=0.5)
+    model.pMinimumCash = pe.Param(mutable=True, within=pe.NonNegativeReals, default=0)
+    model.pPropNegativeCash = pe.Param(mutable=True, within=pe.NonNegativeReals, default=0.05)
     # Variables
-    model.vCashAllocations = pe.Var(model.sScenarios, model.sTime, domain=pe.NonNegativeReals, initialize=0) # shorting not allowed
+    model.vCashAllocations = pe.Var(model.sScenarios, model.sTime, domain=pe.Reals, initialize=0) # shorting not allowed
+    model.vNegativeCashAllocations = pe.Var(model.sScenarios, model.sTime, domain=pe.Reals, bounds=(None, 0), initialize=0)
+    model.vHasNegativeCash = pe.Var(model.sScenarios, domain=pe.Binary, initialize=0)
     model.vNonCashAllocations = pe.Var(model.sNonCashAssets, model.sTime, domain=pe.NonNegativeIntegers, initialize=0) # shorting not allowed
     model.vCashTrades = pe.Var(model.sScenarios, model.sNonFinalTime, domain=pe.Reals, initialize=0)
     model.vCashTradesAbs = pe.Var(model.sScenarios, model.sNonFinalTime, domain=pe.NonNegativeReals, initialize=0)
@@ -72,7 +79,7 @@ def create_model():
         
     def c10_total_wealth(model, s, t):
         return model.vTotalWealth[s,t] == model.vCashAllocations[s,t] + sum(model.vNonCashAllocations[a,t]*model.pPrices[s,a,t] for a in model.sNonCashAssets)
-     
+         
     def c11_final_wealth_cvar_loss(model, s, t):
         return model.vLoss[s,t] >= - model.vVaR[t] - model.vTotalWealth[s,t]
 
@@ -80,6 +87,16 @@ def create_model():
         n_scenarios = len(model.sScenarios)
         return model.vCVaR[t] == model.vVaR[t] + 1/model.pCVaRAlpha/n_scenarios*sum(model.vLoss[s,t] for s in model.sScenarios)
         
+    def c13_negative_cash(model, s, t):
+        return model.vNegativeCashAllocations[s,t] <= model.vCashAllocations[s,t] - model.pMinimumCash
+    
+    def c14_count_negative_scenarios(model, s, t):
+        n_times = len(model.sTime)
+        return model.vNegativeCashAllocations[s, t] + model.vHasNegativeCash[s]*n_times*model.pInitialCashAllocations >= 0
+
+    def c15_max_negative_scenarios(model, s):
+        n_scenarios = len(model.sScenarios)
+        return sum(model.vHasNegativeCash[s] for s in model.sScenarios)/n_scenarios <= model.pPropNegativeCash
 
     # Objective function
     def obj_expression(model):
@@ -99,6 +116,9 @@ def create_model():
     model.c10_total_wealth = pe.Constraint(model.sScenarios, model.sTime, rule=c10_total_wealth)
     model.c11_final_wealth_cvar_loss = pe.Constraint(model.sScenarios, model.sFinalTime, rule=c11_final_wealth_cvar_loss)
     model.c12_cvar = pe.Constraint(model.sFinalTime, rule=c12_cvar)
+    model.c13_negative_cash = pe.Constraint(model.sScenarios, model.sTime, rule=c13_negative_cash)
+    model.c14_count_negative_scenarios = pe.Constraint(model.sScenarios, model.sTime, rule=c14_count_negative_scenarios)
+    model.c15_max_negative_scenarios = pe.Constraint(model.sScenarios, rule=c15_max_negative_scenarios)
 
 
     # Objective function

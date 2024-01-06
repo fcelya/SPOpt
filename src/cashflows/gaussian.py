@@ -13,7 +13,7 @@ class NormalCashFlows():
         self.cash_flow = cash_flow
         self.mean = np.mean(cash_flow)
         self.var = np.var(cash_flow)
-        self.dist = norm(self.mean, self.var)
+        self.dist = norm(self.mean, self.var**.5)
 
     def predict(self, horizon, n_paths=1):
         if self.mean is None or self.var is None:

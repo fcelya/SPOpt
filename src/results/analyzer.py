@@ -67,24 +67,31 @@ class ResultsAnalyzer():
         self.df_dict[name] = df
         return df
     
-    def plot_ts(self, name, time_col, col_names=None, colors=None, filter=None):
+    def plot_ts(self, name, time_col, col_names=None, colors=None, filter=None, inline_plot=False):
         df = self.get_df(name=name, col_names=col_names)
         if filter:
             for k in filter.keys():
                 df = df[df[k]==filter[k]]
         fig = px.line(df, x=time_col, y="value", color=colors)
-        fig.write_html('plot_ts_'+datetime.now().strftime('%Y%m%d%H%M%S')+'.html', auto_open=True)
 
-    def plot_dist(self, name, filter, col_names=None, marginal='violin', colors=None):
+        if inline_plot:
+            fig.show()
+        else:
+            fig.write_html('plot_ts_'+datetime.now().strftime('%Y%m%d%H%M%S')+'.html', auto_open=True)
+
+    def plot_dist(self, name, filter, col_names=None, marginal='violin', colors=None, inline_plot=False):
         df = self.get_df(name=name, col_names=col_names)
         if filter:
             for k in filter.keys():
                 df = df[df[k]==filter[k]]
         fig = px.histogram(df,x='value',marginal=marginal, color=colors)
         
-        fig.write_html('plot_dist_'+datetime.now().strftime('%Y%m%d%H%M%S')+'.html', auto_open=True)
+        if inline_plot:
+            fig.show()
+        else:
+            fig.write_html('plot_dist_'+datetime.now().strftime('%Y%m%d%H%M%S')+'.html', auto_open=True)
     
-    def plot_ci(self, name, time_col, scenario_col, filter=None, col_names=None, confidence=.95):
+    def plot_ci(self, name, time_col, scenario_col, filter=None, col_names=None, confidence=.95, inline_plot=False):
         if confidence <=0 or confidence > 1:
             raise ValueError(f"Confidence value should be between 0 and 1")
         
@@ -93,7 +100,7 @@ class ResultsAnalyzer():
             for k in filter.keys():
                 df = df[df[k]==filter[k]]
         
-        first_time_col = df.loc[0,time_col]
+        first_time_col = df[time_col].iloc[0]
         n_samples = len(df[df[time_col]==first_time_col])
         lower_bound = int(n_samples*(1-confidence)/2)
         upper_bound = n_samples - lower_bound
@@ -137,7 +144,11 @@ class ResultsAnalyzer():
                 line=dict(color='red', width=2)
             )
         )
-        fig.write_html('plot_ci_'+datetime.now().strftime('%Y%m%d%H%M%S')+'.html', auto_open=True)
+
+        if inline_plot:
+            fig.show()
+        else:
+            fig.write_html('plot_ci_'+datetime.now().strftime('%Y%m%d%H%M%S')+'.html', auto_open=True)
             
         
 
