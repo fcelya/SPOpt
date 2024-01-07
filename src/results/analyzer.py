@@ -102,8 +102,8 @@ class ResultsAnalyzer():
         
         first_time_col = df[time_col].iloc[0]
         n_samples = len(df[df[time_col]==first_time_col])
-        lower_bound = int(n_samples*(1-confidence)/2)
-        upper_bound = n_samples - lower_bound
+        lower_bound = n_samples*(1-confidence)//2
+        upper_bound = n_samples - lower_bound - 1
 
         df_plot_values = {
             'time':[],
