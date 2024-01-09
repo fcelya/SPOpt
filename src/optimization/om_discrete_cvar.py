@@ -22,7 +22,7 @@ def create_model():
     model.pExpense = pe.Param(model.sScenarios, model.sNonFinalTime, mutable=True, within=pe.NonNegativeReals)
     model.pTradeFee = pe.Param(mutable=True, within=pe.NonNegativeReals, default=0)
     model.pCVaRAlpha = pe.Param(mutable=True, within=pe.NonNegativeReals, default=0.05)
-    model.pCVaRGamma = pe.Param(mutable=True, within=pe.NonNegativeReals, default=1.0)
+    model.pCVaRGamma = pe.Param(mutable=True, within=pe.NonNegativeReals, default=0.0)
     # Variables
     model.vCashAllocations = pe.Var(model.sScenarios, model.sTime, domain=pe.NonNegativeReals, initialize=0) # shorting not allowed
     model.vNonCashAllocations = pe.Var(model.sNonCashAssets, model.sTime, domain=pe.NonNegativeIntegers, initialize=0) # shorting not allowed

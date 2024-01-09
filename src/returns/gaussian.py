@@ -16,7 +16,7 @@ class LogNormalReturns():
         log_returns = np.log(df_prices / df_prices.shift(1)).dropna()
         self.mean = log_returns.mean().values
         self.cov = log_returns.cov().values
-        self.dist = multivariate_normal(self.mean, self.cov)
+        self.dist = multivariate_normal(self.mean, self.cov, seed=self.seed)
 
     def set_price_0(self, price_0):
         self.price_0 = price_0
@@ -39,7 +39,7 @@ class LogNormalReturns():
         prices[:, :, 0] = np.tile(price_0, (n_paths, 1))
 
         for t in range(1, horizon+1):
-            log_returns_sampled = self.dist.rvs(size=n_paths, random_state=self.seed)
+            log_returns_sampled = self.dist.rvs(size=n_paths)
             prices[:, :, t] = prices[:, :, t-1] * np.exp(log_returns_sampled)
 
 
