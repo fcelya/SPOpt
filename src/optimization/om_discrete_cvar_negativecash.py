@@ -1,9 +1,6 @@
 import pyomo.environ as pe
 
 def create_model():
-    """
-    DOES NOT GIVE SENSIBLE ANSWERS, BORROWS AGGRESSIVELY TO INCREASE EXPECTATION THROUGH RETURNS OF OUTLIERS ON MARGIN
-    """
     
     model = pe.AbstractModel()
     
@@ -94,7 +91,7 @@ def create_model():
         n_times = len(model.sTime)
         return model.vNegativeCashAllocations[s, t] + model.vHasNegativeCash[s]*n_times*model.pInitialCashAllocations >= 0
 
-    def c15_max_negative_scenarios(model, s):
+    def c15_max_negative_scenarios(model):
         n_scenarios = len(model.sScenarios)
         return sum(model.vHasNegativeCash[s] for s in model.sScenarios)/n_scenarios <= model.pPropNegativeCash
 
@@ -118,7 +115,7 @@ def create_model():
     model.c12_cvar = pe.Constraint(model.sFinalTime, rule=c12_cvar)
     model.c13_negative_cash = pe.Constraint(model.sScenarios, model.sTime, rule=c13_negative_cash)
     model.c14_count_negative_scenarios = pe.Constraint(model.sScenarios, model.sTime, rule=c14_count_negative_scenarios)
-    model.c15_max_negative_scenarios = pe.Constraint(model.sScenarios, rule=c15_max_negative_scenarios)
+    model.c15_max_negative_scenarios = pe.Constraint(rule=c15_max_negative_scenarios)
 
 
     # Objective function
