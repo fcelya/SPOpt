@@ -67,8 +67,9 @@ class ResultsAnalyzer():
         self.df_dict[name] = df
         return df
     
-    def plot_ts(self, name, time_col, col_names=None, colors=None, filter=None, inline_plot=False):
-        df = self.get_df(name=name, col_names=col_names)
+    def plot_ts(self, name, time_col, col_names=None, colors=None, filter=None, inline_plot=False, df=None):
+        if not df:
+            df = self.get_df(name=name, col_names=col_names)
         if filter:
             for k in filter.keys():
                 df = df[df[k]==filter[k]]
@@ -79,8 +80,9 @@ class ResultsAnalyzer():
         else:
             fig.write_html('plot_ts_'+datetime.now().strftime('%Y%m%d%H%M%S')+'.html', auto_open=True)
 
-    def plot_dist(self, name, filter, col_names=None, marginal='violin', colors=None, inline_plot=False):
-        df = self.get_df(name=name, col_names=col_names)
+    def plot_dist(self, name, filter, col_names=None, marginal='violin', colors=None, inline_plot=False, df=None):
+        if not df:
+            df = self.get_df(name=name, col_names=col_names)
         if filter:
             for k in filter.keys():
                 df = df[df[k]==filter[k]]
@@ -91,11 +93,11 @@ class ResultsAnalyzer():
         else:
             fig.write_html('plot_dist_'+datetime.now().strftime('%Y%m%d%H%M%S')+'.html', auto_open=True)
     
-    def plot_ci(self, name, time_col, scenario_col, filter=None, col_names=None, confidence=.95, inline_plot=False):
+    def plot_ci(self, name, time_col, scenario_col, filter=None, col_names=None, confidence=.95, inline_plot=False, df=None):
         if confidence <=0 or confidence > 1:
             raise ValueError(f"Confidence value should be between 0 and 1")
-        
-        df = self.get_df(name=name, col_names=col_names)
+        if not df:
+            df = self.get_df(name=name, col_names=col_names)
         if filter:
             for k in filter.keys():
                 df = df[df[k]==filter[k]]
@@ -149,6 +151,13 @@ class ResultsAnalyzer():
             fig.show()
         else:
             fig.write_html('plot_ci_'+datetime.now().strftime('%Y%m%d%H%M%S')+'.html', auto_open=True)
+    
+    def save_csv(self, name, csv_path_name, time_col, col_names=None, filter=None):
+        df = self.get_df(name=name, col_names=col_names)
+        if filter:
+            for k in filter.keys():
+                df = df[df[k]==filter[k]]
+        df.to_csv(csv_path_name)
             
         
 
