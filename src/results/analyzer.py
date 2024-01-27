@@ -152,7 +152,7 @@ class ResultsAnalyzer():
         else:
             fig.write_html('plot_ci_'+datetime.now().strftime('%Y%m%d%H%M%S')+'.html', auto_open=True)
     
-    def save_csv(self, name, csv_path_name, time_col, col_names=None, filter=None):
+    def save_csv(self, name, csv_path_name, col_names=None, filter=None):
         df = self.get_df(name=name, col_names=col_names)
         if filter:
             for k in filter.keys():
