@@ -1,6 +1,9 @@
 import pyomo.environ as pe
 
 def create_model():
+    """
+    WIP
+    """
     
     model = pe.AbstractModel()
     
@@ -54,7 +57,7 @@ def create_model():
         return model.vNonCashAllocations[a,t] == model.vNonCashAllocations[a,t-1] + model.vNonCashTrades[a,t-1]
     
     def c04_allocations_evolution_cash(model, s, t):
-        return model.vCashAllocations[s,t] == (model.vCashAllocations[s,t-1] + model.vCashTrades[s,t-1] + model.pIncome[s,t-1] - model.pExpense[s,t-1])
+        return model.vCashAllocations[s,t] == (model.vCashAllocations[s,t-1] + model.vCashTrades[s,t-1] + model.pIncome[s,t-1] - model.pExpense[s,t-1])*model.pCashReturns[s,t-1]
     
     def c05_absolute_value_cash_trade_positive(model, s, t):
         return model.vCashTrades[s,t] <= model.vCashTradesAbs[s,t]
